@@ -1,0 +1,38 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:WpfApplicationOpenCAD"
+                    xmlns:svg2xaml="clr-namespace:Svg2Xaml;assembly=Svg2Xaml">
+    <Image x:Key="Icon_DialogConfirm" Source="{svg2xaml:SvgImage '..\Resources\Icons\dialog_confirm.svg' }"/>
+    <Image x:Key="Icon_DialogError" Source="{svg2xaml:SvgImage '..\Resources\Icons\dialog_error.svg' }"/>
+    <Image x:Key="Icon_DialogInfo" Source="{svg2xaml:SvgImage '..\Resources\Icons\dialog_info.svg' }"/>
+    <Image x:Key="Icon_DialogSuccess" Source="{svg2xaml:SvgImage '..\Resources\Icons\dialog_success.svg' }"/>
+    <Image x:Key="Icon_DialogWarn" Source="{svg2xaml:SvgImage '..\Resources\Icons\dialog_warn.svg' }"/>
+    <Image x:Key="Icon_FileCSV" Source="{svg2xaml:SvgImage '..\Resources\Icons\file_csv.svg' }"/>
+    <Image x:Key="Icon_FileDWG" Source="{svg2xaml:SvgImage '..\Resources\Icons\file_dwg.svg' }"/>
+    <Image x:Key="Icon_FileDXF" Source="{svg2xaml:SvgImage '..\Resources\Icons\file_dxf.svg' }"/>
+    <Image x:Key="Icon_FileGBR" Source="{svg2xaml:SvgImage '..\Resources\Icons\file_gbr.svg' }"/>
+    <Image x:Key="Icon_FileIGES" Source="{svg2xaml:SvgImage '..\Resources\Icons\file_iges.svg' }"/>
+    <Image x:Key="Icon_FileLIB" Source="{svg2xaml:SvgImage '..\Resources\Icons\file_lib.svg' }"/>
+    <Image x:Key="Icon_FileNew" Source="{svg2xaml:SvgImage '..\Resources\Icons\file_new.svg' }"/>
+    <Image x:Key="Icon_FileODS" Source="{svg2xaml:SvgImage '..\Resources\Icons\file_ods.svg' }"/>
+    <Image x:Key="Icon_FileODT" Source="{svg2xaml:SvgImage '..\Resources\Icons\file_odt.svg' }"/>
+    <Image x:Key="Icon_FileOpen" Source="{svg2xaml:SvgImage '..\Resources\Icons\file_open.svg' }"/>
+    <Image x:Key="Icon_FilePCB" Source="{svg2xaml:SvgImage '..\Resources\Icons\file_pcb.svg' }"/>
+    <Image x:Key="Icon_FilePDF" Source="{svg2xaml:SvgImage '..\Resources\Icons\file_pdf.svg' }"/>
+    <Image x:Key="Icon_FileSave" Source="{svg2xaml:SvgImage '..\Resources\Icons\file_save.svg' }"/>
+    <Image x:Key="Icon_FileSCH" Source="{svg2xaml:SvgImage '..\Resources\Icons\file_sch.svg' }"/>
+    <Image x:Key="Icon_FileSTEP" Source="{svg2xaml:SvgImage '..\Resources\Icons\file_step.svg' }"/>
+    <Image x:Key="Icon_FileSTL" Source="{svg2xaml:SvgImage '..\Resources\Icons\file_stl.svg' }"/>
+    <Image x:Key="Icon_FileSVG" Source="{svg2xaml:SvgImage '..\Resources\Icons\file_svg.svg' }"/>
+    <Image x:Key="Icon_FileTXT" Source="{svg2xaml:SvgImage '..\Resources\Icons\file_txt.svg' }"/>
+    <Image x:Key="Icon_FolderClosed" Source="{svg2xaml:SvgImage '..\Resources\Icons\folder_closed.svg' }"/>
+    <Image x:Key="Icon_FolderClosedLarge" Source="{svg2xaml:SvgImage '..\Resources\Icons\folder_closed_large.svg' }"/>
+    <Image x:Key="Icon_FolderNew" Source="{svg2xaml:SvgImage '..\Resources\Icons\folder_new.svg' }"/>
+    <Image x:Key="Icon_FolderOpen" Source="{svg2xaml:SvgImage '..\Resources\Icons\folder_open.svg' }"/>
+    <Image x:Key="Icon_FolderOpenLarge" Source="{svg2xaml:SvgImage '..\Resources\Icons\folder_open_large.svg' }"/>
+    <Image x:Key="Icon_HelpBtn" Source="{svg2xaml:SvgImage '..\Resources\Icons\help_btn.svg' }"/>
+    <Image x:Key="Icon_ListDown" Source="{svg2xaml:SvgImage '..\Resources\Icons\list_down.svg' }"/>
+    <Image x:Key="Icon_ListMinus" Source="{svg2xaml:SvgImage '..\Resources\Icons\list_minus.svg' }"/>
+    <Image x:Key="Icon_ListPlus" Source="{svg2xaml:SvgImage '..\Resources\Icons\list_plus.svg' }"/>
+    <Image x:Key="Icon_ListUp" Source="{svg2xaml:SvgImage '..\Resources\Icons\list_up.svg' }"/>
+</ResourceDictionary>

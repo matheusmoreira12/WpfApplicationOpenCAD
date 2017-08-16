@@ -1,0 +1,43 @@
+﻿<RibbonWindow x:Class="WpfApplicationOpenCAD.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfApplicationOpenCAD"
+        xmlns:svg2xaml="clr-namespace:Svg2Xaml;assembly=Svg2Xaml"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="350" Width="525">
+    <Grid>
+        <StackPanel>
+            <Ribbon Background="WhiteSmoke" BorderBrush="Gainsboro">
+                <Ribbon.HelpPaneContent>
+                    <RibbonButton Height="20" Width="20">
+                        <svg2xaml:SvgImage Uri="c:\users\matheus\documents\visual studio 2015\Projects\WpfApplicationOpenCAD\WpfApplicationOpenCAD\Resources\Icons\help_btn.svg"/>
+                    </RibbonButton>
+                </Ribbon.HelpPaneContent>
+                <Ribbon.QuickAccessToolBar>
+                    <RibbonQuickAccessToolBar>
+                        <RibbonButton ToolTipTitle="Undo"></RibbonButton>
+                        <RibbonButton ToolTipTitle="Redo"></RibbonButton>
+                        <RibbonButton ToolTipTitle="Save"></RibbonButton>
+                    </RibbonQuickAccessToolBar>
+                </Ribbon.QuickAccessToolBar>
+                <Ribbon.ApplicationMenu>
+                    <RibbonApplicationMenu Background="OrangeRed" BorderBrush="DarkOrange">
+                        <RibbonApplicationMenuItem Header="Project"></RibbonApplicationMenuItem>
+                        <RibbonApplicationMenuItem Header="Library Editor"></RibbonApplicationMenuItem>
+                        <RibbonApplicationMenuItem Header="Circuit Layout"></RibbonApplicationMenuItem>
+                        <RibbonApplicationMenuItem Header="PCB Layout"></RibbonApplicationMenuItem>
+                    </RibbonApplicationMenu>
+                </Ribbon.ApplicationMenu>
+                <RibbonTab Header="Home">
+                </RibbonTab>
+            </Ribbon>
+            <TabControl>
+                <TabItem Header="Hi!"></TabItem>
+                <TabItem Header="Hi!"></TabItem>
+                <TabItem Header="Hi!"></TabItem>
+            </TabControl>
+        </StackPanel>
+    </Grid>
+</RibbonWindow>
