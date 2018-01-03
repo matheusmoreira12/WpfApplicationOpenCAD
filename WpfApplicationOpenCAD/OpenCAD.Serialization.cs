@@ -11,6 +11,9 @@ using System.Net;
 using System.Xml;
 using System.Xml.Schema;
 
+using OpenCAD.OpenCADFormat.Measures;
+using OpenCAD.OpenCADFormat.Measures.Quantities;
+
 namespace OpenCAD
 {
     namespace Serialization
@@ -188,8 +191,8 @@ namespace OpenCAD
                 return metadata.Content;
             }
 
-            public bool IsEmpty { get { return Content != null && Content != ""; } }
-            public bool IsUnnamed { get { return Name != null && Name != ""; } }
+            public bool IsEmpty { get { return Content == null || Content == ""; } }
+            public bool IsUnnamed { get { return Name == null || Name == ""; } }
 
             /// <summary>
             /// The identifier for this metadata tag.
@@ -222,7 +225,7 @@ namespace OpenCAD
                 return metadata.Content;
             }
 
-            public bool IsEmpty { get { return Content != null && Content != ""; } }
+            public bool IsEmpty { get { return Content == null || Content == ""; } }
 
             /// <summary>
             /// The content for this metadata tag.
@@ -669,9 +672,8 @@ namespace OpenCAD
                     XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
                     ns.Add("xml", "http://www.w3.org/XML/1998/namespace");
                     ns.Add("xlink", "http://www.w3.org/1999/xlink");
-                    ns.Add("svg", "http://www.w3.org/2000/svg");
+                    ns.Add("ocxdraw", "http://www.opencad.org/2017/ocxdraw");
                     ns.Add("ocxlib", "http://www.opencad.org/2017/ocxlib");
-                    ns.Add("ocxlib-dxf", "http://www.opencad.org/2017/ocxlib-dxf");
 
                     Serialize(writer, Root, ns);
                 }
@@ -807,7 +809,7 @@ namespace OpenCAD
             public class Component
             {
                 [XmlIgnore]
-                public bool IsValid { get { return !Name.IsEmpty && !Series.IsEmpty && !Variant.IsEmpty && !ReferenceDesignator.IsEmpty; } }
+                public bool IsValid { get { return (!Name.IsEmpty || !Series.IsEmpty || !Variant.IsEmpty) && !ReferenceDesignator.IsEmpty; } }
 
                 [XmlElement(ElementName = "Name")]
                 public ImplicitMetadata Name = new ImplicitMetadata("New Component");
@@ -836,10 +838,11 @@ namespace OpenCAD
                 public MetadataCollection Metadata = new MetadataCollection();
 
                 [XmlElement(ElementName = "Symbol")]
-                public ComponentSymbol Symbol;
+                public ComponentSymbol Symbol = new ComponentSymbol();
             }
         }
 
+        [Serializable]
         public struct Placement
         {
             static public Placement Parse(string value)
@@ -848,28 +851,35 @@ namespace OpenCAD
                 if (values.Length != 2)
                     throw new InvalidOperationException("String contains too many or too few coordinates.");
 
-                return new Placement(decimal.Parse(values[0]), decimal.Parse(values[1]));
+                return new Placement(Measurement<Length>.Parse(values[0]), 
+                    Measurement<Length>.Parse(values[1]));
             }
 
-            Cureos.Measures.Quantities.Length X;
-            Cureos.Measures.Quantities.Length Y;
+            IMeasurement<Length> X;
+            IMeasurement<Length> Y;
 
             public new string ToString()
             {
-                return X.StandardAmount + ";" + Y.StandardAmount;
+                return X.ToString() + ";" + Y.ToString();
             }
 
-            public Placement(decimal amountX, decimal amountY)
+            public Placement(IMeasurement<Length> x, IMeasurement<Length> y)
             {
-                X = new Cureos.Measures.Quantities.Length(amountX);
-                Y = new Cureos.Measures.Quantities.Length(amountY);
+                X = x;
+                Y = y;
             }
         }
 
+        [Serializable]
+        public class ComponentPinCollection : List<ComponentPin>
+        {
+        }
+
+        [Serializable]
         public class ComponentPin : IXmlSerializable
         {
             Placement Placement = new Placement();
-            
+
             public XmlSchema GetSchema()
             {
                 return null;
@@ -890,113 +900,37 @@ namespace OpenCAD
             }
         }
 
-        public class SvgSerializer : IXmlSerializable
-        {
-            Svg.SvgDocument Target;
-
-            private void writeSvgElement(XmlWriter writer, Svg.SvgElement svgElement)
-            {
-                var unitconverter = new Svg.SvgUnitConverter();
-                var colorconverter = new Svg.SvgColourConverter();
-
-                writer.WriteAttributeString("color", colorconverter.ConvertToString(svgElement.Color));
-                writer.WriteAttributeString("fill", colorconverter.ConvertToString(svgElement.Fill.Color));
-                writer.WriteAttributeString("fill-opacity", svgElement.FillOpacity.ToString());
-                writer.WriteAttributeString("fill-rule", new Svg.SvgFillRuleConverter().ConvertToString(svgElement.FillRule));
-                writer.WriteAttributeString("font", svgElement.Font);
-                writer.WriteAttributeString("font-family", svgElement.FontFamily);
-                writer.WriteAttributeString("font-size", unitconverter.ConvertToString(svgElement.FontSize));
-                writer.WriteAttributeString("font-style", new Svg.SvgFontStyleConverter().ConvertToString(svgElement.FontStyle));
-                writer.WriteAttributeString("font-variant", new Svg.SvgFontVariantConverter().ConvertToString(svgElement.FontVariant));
-                writer.WriteAttributeString("font-weight", new Svg.SvgFontWeightConverter().ConvertToString(svgElement.FontWeight));
-                writer.WriteAttributeString("id", svgElement.ID);
-                writer.WriteAttributeString("opacity", svgElement.Opacity.ToString());
-                writer.WriteAttributeString("stroke", svgElement.Stroke.Content);
-                writer.WriteAttributeString("stroke-dasharray", string.Join(",", svgElement.StrokeDashArray.Select(u => u.Value)));
-                writer.WriteAttributeString("stroke-dashoffset", unitconverter.ConvertToString(svgElement.StrokeDashOffset));
-                writer.WriteAttributeString("stroke-linecap", new Svg.SvgStrokeLineCapConverter().ConvertToString(svgElement.StrokeLineCap));
-                writer.WriteAttributeString("stroke-linejoin", new Svg.SvgStrokeLineJoinConverter().ConvertToString(svgElement.StrokeLineJoin));
-                writer.WriteAttributeString("stroke-opacity", svgElement.StrokeOpacity.ToString());
-                writer.WriteAttributeString("stroke-width", unitconverter.ConvertToString(svgElement.StrokeWidth));
-                writer.WriteAttributeString("transform", new Svg.Transforms.SvgTransformConverter().ConvertToString(svgElement.Transforms));
-
-                foreach (string key in svgElement.CustomAttributes.Keys)
-                {
-                    string value = svgElement.CustomAttributes[key];
-                    writer.WriteAttributeString(key, value);
-                }
-
-                foreach (Svg.SvgElement child in svgElement.Children)
-                {
-                    if (child is Svg.SvgCircle)
-                    {
-                        var circle = child as Svg.SvgCircle;
-                        writer.WriteStartElement("circle");
-                        writer.WriteAttributeString("r", unitconverter.ConvertToString(circle.Radius));
-                        writer.WriteAttributeString("cx", unitconverter.ConvertToString(circle.CenterX));
-                        writer.WriteAttributeString("xy", unitconverter.ConvertToString(circle.CenterY));
-                        writer.WriteEndElement();
-                    }
-                    if (child is Svg.SvgPath)
-                    {
-                        var path = child as Svg.SvgPath;
-                        writer.WriteStartElement("path");
-                        writer.WriteAttributeString("d", new Svg.SvgPathBuilder().ConvertToString(path.PathData));
-                        writer.WriteEndElement();
-                    }
-                    if (child is Svg.SvgClipPath)
-                    {
-                        var clippath = child as Svg.SvgClipPath;
-                        writer.WriteStartElement("clipPath");
-                        writer.WriteEndElement();
-                    }
-                    if (child is Svg.SvgDefinitionList)
-                    {
-                        var deflist = child as Svg.SvgDefinitionList;
-                    }
-                    if (child is Svg.SvgDescription)
-                    {
-                        var desc = child as Svg.SvgDescription;
-                    }
-                    if (child is Svg.SvgDescription)
-                    {
-                        var desc = child as Svg.SvgDescription;
-                    }
-
-                    writeSvgElement(writer, child);
-                }
-            }
-
-            public void ReadXml(XmlReader reader)
-            {
-                
-            }
-
-            public void WriteXml(XmlWriter writer)
-            {
-                throw new NotImplementedException();
-            }
-
-            public XmlSchema GetSchema()
-            {
-                throw new NotImplementedException();
-            }
-        }
-
         [Serializable]
+        [XmlInclude(typeof(DrawingSerialization.SvgDrawingSerializable))]
         public class ComponentSymbol
         {
             [XmlAttribute("Format")]
             public ComponentSymbolFormat Format = ComponentSymbolFormat.Empty;
 
-            [XmlElement(ElementName = "SerializedDXF", Namespace = "http://www.opencad.org/2017/ocxlib_dxf")]
-            public netDxf.DxfDocument DxfDocument;
+            [XmlAnyElement]
+            public DrawingSerialization.SvgDrawingSerializable SvgSerializable;
 
-            [XmlElement(ElementName = "svg", Namespace = "http://www.w3.org/2000/svg")]
-            public Svg.SvgDocument SvgDocument;
+            [XmlIgnore]
+            private Svg.SvgDocument _SvgDocument;
 
-            [XmlElement(Namespace = "Pin")]
-            public ComponentPin Pins;
+            [XmlIgnore]
+            public Svg.SvgDocument SvgDocument
+            {
+                get { return _SvgDocument; }
+                set
+                {
+                    _SvgDocument = value;
+                    SvgSerializable = new DrawingSerialization.SvgDrawingSerializable(value);
+                }
+            }
+
+            [XmlElement(ElementName = "Pin")]
+            public ComponentPinCollection Pins;
+
+            public ComponentSymbol()
+            {
+                SvgSerializable = new DrawingSerialization.SvgDrawingSerializable(SvgDocument);
+            }
         }
 
         [Serializable]

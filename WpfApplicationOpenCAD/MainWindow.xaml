@@ -33,6 +33,7 @@
                 <RibbonTab Header="Home">
                 </RibbonTab>
             </Ribbon>
+            <Canvas Height="100" Width="100" Name="Canvas1"></Canvas>
             <TabControl>
                 <TabItem Header="Hi!"></TabItem>
                 <TabItem Header="Hi!"></TabItem>
