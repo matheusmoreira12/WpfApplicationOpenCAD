@@ -7,277 +7,215 @@ using System.Threading.Tasks;
 
 using OpenCAD.OpenCADFormat.DataConversion;
 using System.Numerics;
+using OpenCAD.Utils;
+using System.Reflection;
+using System.Collections;
 
-namespace OpenCAD.OpenCADFormat.DataStrings
+namespace OpenCAD.OpenCADFormat.DataStrings.Serialization
 {
-    public class DataStringParser
+    public class AttributeException : Exception
     {
-        static private char[] getCharRange(char start, char end)
-        {
-            return Enumerable.Range(start, end - start + 1).Select(i => (char)i).ToArray();
-        }
-
-        static char[] LOWER_CASE_LETTER_CHARS { get; } = getCharRange('a', 'z');
-        static char[] UPPER_CASE_LETTER_CHARS { get; } = getCharRange('A', 'Z');
-        static char[] LETTER_CHARSET { get; } = LOWER_CASE_LETTER_CHARS.Concat(UPPER_CASE_LETTER_CHARS).ToArray();
-        static char[] NUMERIC_CHARSET { get; } = getCharRange('0', '9');
-        static char[] HEXADECIMAL_CHARSET { get; } = NUMERIC_CHARSET.Concat(getCharRange('a', 'f')).ToArray();
-        static char[] ALPHANUMERIC_CHARSET { get; } =
-            LOWER_CASE_LETTER_CHARS.Concat(UPPER_CASE_LETTER_CHARS).Concat(NUMERIC_CHARSET).ToArray();
-        static char[] IDENTIFIER_CHARSET { get; } = ALPHANUMERIC_CHARSET.Concat(new char[] { '_' }).ToArray();
-        static char[] LITERAL_CHARSET { get; } = NUMERIC_CHARSET.Concat(IDENTIFIER_CHARSET).Concat(new char[] { '#' }).ToArray();
-        static char[] WHITESPACE_CHARACTERS = new char[] { ' ', '\n' };
-
-        const char SEPARATOR_CHARACTER = ';';
-        const char FUNC_PARAMS_OPENING_CHAR = '(';
-        const char FUNC_PARAMS_CLOSING_CHAR = ')';
-        const char PARAM_NAME_SEPARATOR_CHAR = ':';
-        const char STRING_ENCLOSING_CHAR = '\'';
-
-        public string TextContent { get; private set; }
-
-        private char currentChar
+        public Type[] AttributeTypes
         {
             get
             {
-                if (scanIndex >= TextContent.Length)
-                    return char.MinValue;
-
-                return TextContent[scanIndex];
+                return (Type[])Data["AttributeTypes"];
             }
-        }
-
-        private int scanIndex;
-
-        public DataStringMainContext Parse()
-        {
-            DataStringMainContext result = new DataStringMainContext();
-
-            scanIndex = 0;
-
-            readAllItems(result);
-
-            return result;
-        }
-
-        private void readAllItems(DataStringParameter result)
-        {
-            DataStringParameter generatedItem;
-
-            while (readDataStringParameter(out generatedItem) || readDataStringSeparator())
+            set
             {
-                if (generatedItem != null)
-                    result.Parameters.Add(generatedItem);
+                if (AttributeType != null)
+                    throw new InvalidOperationException("Cannot set both AttributeType and AttributeTypes properties.");
+
+                Data["AttributeTypes"] = value;
             }
         }
 
-        private bool readDataStringSeparator()
+        public Type AttributeType
         {
-            if (currentChar == SEPARATOR_CHARACTER)
+            get
             {
-                scanIndex++;
-
-                while (WHITESPACE_CHARACTERS.Contains(currentChar))
-                    scanIndex++;
-
-                return true;
+                return (Type)Data["AttributeType"];
             }
-
-            return false;
-        }
-
-        private bool readDataStringParameter(out DataStringParameter parameter)
-        {
-            return readDataStringFunction(out parameter) || readDataStringSymbol(out parameter) || readDataStringLiteral(out parameter);
-        }
-
-        private bool readDataStringLiteral(out DataStringParameter parameter)
-        {
-            return readDataStringLiteralString(out parameter) || readDataStringBinary(out parameter) || readDataStringFloat(out parameter);
-        }
-
-        private bool readDataStringBinary(out DataStringParameter parameter)
-        {
-            int initialIndex = scanIndex;
-
-            if (currentChar == '0')
+            set
             {
-                scanIndex++;
+                if (AttributeTypes != null)
+                    throw new InvalidOperationException("Cannot set both AttributeType and AttributeTypes properties.");
 
-                bool literalIsBinary = currentChar == 'b',
-                    literalIsHexadecimal = currentChar == 'x';
-
-                if (literalIsBinary || literalIsHexadecimal)
-                {
-                    scanIndex++;
-
-                    while (literalIsBinary && "01".Contains(currentChar) ||
-                        literalIsHexadecimal && HEXADECIMAL_CHARSET.Contains(currentChar))
-                        scanIndex++;
-
-                    int valueStart = initialIndex + 2;
-                    string valueStr = TextContent.Substring(valueStart, scanIndex - valueStart);
-
-                    if (literalIsBinary)
-                    {
-                        parameter = new DataStringLiteralBinary(BinaryConversion.FromString(valueStr).AsByteArray());
-                        return true;
-                    }
-                    else if (literalIsHexadecimal)
-                    {
-                        parameter = new DataStringLiteralHexadecimal(valueStr);
-                        return true;
-                    }
-                }
+                Data["AttributeType"] = value;
             }
-
-            scanIndex = initialIndex;
-            parameter = null;
-            return false;
         }
-
-        private bool readDataStringFloat(out DataStringParameter parameter)
+        public MemberInfo Member
         {
-            int initialIndex = scanIndex;
-
-            bool isFloatingPoint = false;
-
-            if (NUMERIC_CHARSET.Contains(currentChar))
+            get
             {
-                if (currentChar == '-' || currentChar == '+')
-                    scanIndex++;
-
-                while (NUMERIC_CHARSET.Contains(currentChar))
-                    scanIndex++;
-
-                if (currentChar == '.')
-                {
-                    scanIndex++;
-
-                    while (NUMERIC_CHARSET.Contains(currentChar))
-                        scanIndex++;
-
-                    isFloatingPoint = true;
-                }
-
-                string valueStr = TextContent.Substring(initialIndex, scanIndex - initialIndex);
-
-                if (isFloatingPoint)
-                    parameter = new DataStringLiteralFloatingPoint(ArbitraryFloat.Parse(valueStr));
-                else
-                    parameter = new DataStringLiteralInteger(BigInteger.Parse(valueStr));
-
-                return true;
+                return (MemberInfo)Data["Member"];
             }
-
-            scanIndex = initialIndex;
-            parameter = null;
-            return false;
-        }
-
-        private bool readDataStringLiteralString(out DataStringParameter parameter)
-        {
-            int initialIndex = scanIndex;
-
-            if (currentChar == STRING_ENCLOSING_CHAR)
+            set
             {
-                scanIndex++;
-
-                while (currentChar != '\0')
-                {
-                    if (currentChar == STRING_ENCLOSING_CHAR)
-                        break;
-
-                    scanIndex++;
-                }
-
-                if (scanIndex > initialIndex)
-                {
-                    scanIndex++;
-
-                    parameter = new DataStringLiteralString(TextContent.Substring(initialIndex + 1, scanIndex - initialIndex - 2));
-                    return true;
-                }
+                Data["Member"] = value;
             }
-
-            scanIndex = initialIndex;
-            parameter = null;
-            return false;
         }
 
-        private bool readDataStringSymbol(out DataStringParameter parameter)
-        {
-            string symbolName;
+        public AttributeException() { }
+        public AttributeException(string message = "") : base(message) { }
+    }
 
-            if (readIdentifier(out symbolName))
+    public class AttributeExpectedException : AttributeException
+    {
+        public AttributeExpectedException() { }
+        public AttributeExpectedException(string message = "") : base(message) { }
+    }
+
+    public class InvalidAttributeContextException : AttributeException
+    {
+        public InvalidAttributeContextException() { }
+        public InvalidAttributeContextException(string message = "") : base(message) { }
+    }
+
+
+    internal sealed class Encoder
+    {
+        #region Encoding
+        private DataStringItem encodeRoot(object target)
+        {
+            Type targetType = target.GetType();
+
+            bool targetTypeIsMarkedAsFunction = Attribute.IsDefined(targetType, typeof(FunctionAttribute)),
+                targetTypeIsMarkedAsMainContext = Attribute.IsDefined(targetType, typeof(MainContextAttribute));
+
+            if (targetTypeIsMarkedAsFunction)
+                return encodeAsFunction(target, target.GetType());
+            else if (targetTypeIsMarkedAsMainContext)
+                return encodeAsMainContext(target);
+            else
+                throw new AttributeExpectedException()
+                { AttributeTypes = new[] { typeof(FunctionAttribute), typeof(AnyFunctionAttribute), typeof(MainContextAttribute) } };
+        }
+
+        private IEnumerable<DataStringItem> encodeAllFields(object target)
+        {
+            FieldInfo[] targetFields = target.GetType().GetFields();
+
+            foreach (var targetField in targetFields)
             {
-                parameter = new DataStringSymbol(symbolName);
-                return true;
-            }
+                DataStringItem encodedField = encodeField(target, targetField);
 
-            parameter = null;
-            return false;
+                if (encodedField != null)
+                    yield return encodedField;
+            }
         }
 
-        private bool readDataStringFunction(out DataStringParameter parameter)
+        private DataStringItem encodeField(object target, FieldInfo targetField)
         {
-            int initialIndex = scanIndex;
+            bool fieldIsMarkedAsBinaryLiteral = Attribute.IsDefined(targetField, typeof(BinaryLiteralAttribute)),
+                fieldIsMarkedAsFloatLiteral = Attribute.IsDefined(targetField, typeof(FloatLiteralAttribute)),
+                fieldIsMarkedAsIntegerLiteral = Attribute.IsDefined(targetField, typeof(IntegerLiteralAttribute)),
+                fieldIsMarkedAsStringLiteral = Attribute.IsDefined(targetField, typeof(StringLiteralAttribute)),
+                fieldIsMarkedAsFunction = Attribute.IsDefined(targetField, typeof(FunctionAttribute));
 
-            string functionName;
+            object fieldValue = targetField.GetValue(target);
 
-            if (readIdentifier(out functionName))
+            if (fieldIsMarkedAsBinaryLiteral)
             {
-                if (currentChar == FUNC_PARAMS_OPENING_CHAR)
-                {
-                    scanIndex++;
+                BinaryLiteralAttribute fieldBinaryLiteralAttribute = targetField.GetCustomAttribute<BinaryLiteralAttribute>();
 
-                    var generatedFunction = new DataStringFunction(functionName);
-
-                    readAllItems(generatedFunction);
-
-                    if (currentChar == FUNC_PARAMS_CLOSING_CHAR)
-                    {
-                        scanIndex++;
-
-                        parameter = generatedFunction;
-                        return true;
-                    }
-                    else
-                        throw new InvalidOperationException("Could not parse string. Function parameters end expected.");
-                }
+                return encodeAsBinaryLiteral(fieldValue, fieldBinaryLiteralAttribute.OriginalRepresentation);
             }
-
-            scanIndex = initialIndex;
-            parameter = null;
-            return false;
-        }
-
-        private bool readIdentifier(out string identifier)
-        {
-            int initialIndex = scanIndex;
-
-            if (LETTER_CHARSET.Contains(currentChar))
+            else if (fieldIsMarkedAsFloatLiteral)
+                return encodeAsFloatLiteral(fieldValue);
+            else if (fieldIsMarkedAsIntegerLiteral)
+                return encodeAsIntegerLiteral(fieldValue);
+            else if (fieldIsMarkedAsStringLiteral)
+                return encodeAsStringLiteral(fieldValue);
+            else if (fieldIsMarkedAsFunction)
             {
-                scanIndex++;
+                FunctionItemAttribute fieldFunctionAttribute = targetField.GetCustomAttribute<FunctionItemAttribute>();
 
-                while (ALPHANUMERIC_CHARSET.Contains(currentChar))
-                    scanIndex++;
-
-                if (scanIndex > initialIndex)
-                {
-                    identifier = TextContent.Substring(initialIndex, scanIndex - initialIndex);
-                    return true;
-                }
+                return encodeAsFunction(fieldValue, fieldFunctionAttribute.TargetType);
             }
 
-            scanIndex = initialIndex;
-            identifier = null;
-            return false;
+            return null;
         }
 
-        public DataStringParser(string textContent)
+        private DataStringMainContext encodeAsMainContext(object target)
         {
-            TextContent = textContent;
+            DataStringItem[] mainContextItems = encodeAllFields(target).ToArray();
+            return new DataStringMainContext(mainContextItems);
+        }
+
+        private DataStringLiteralBinary encodeAsBinaryLiteral(object value, DataStringLiteralBinaryRepresentation originalRepr)
+        {
+            BitArray fieldAsBitArray = null;
+
+            if (ObjectConversion.TryConvertTo(value, out fieldAsBitArray))
+                return new DataStringLiteralBinary(fieldAsBitArray, originalRepr);
+
+            return null;
+        }
+
+        private DataStringLiteralFloatingPoint encodeAsFloatLiteral(object value)
+        {
+            BigFloat fieldAsBigFloat;
+
+            if (ObjectConversion.TryConvertTo(value, out fieldAsBigFloat))
+                return new DataStringLiteralFloatingPoint(fieldAsBigFloat);
+
+            return null;
+        }
+
+        private DataStringLiteralInteger encodeAsIntegerLiteral(object value)
+        {
+            BigInteger? fieldAsBigInteger;
+
+            if (ObjectConversion.TryConvertTo(value, out fieldAsBigInteger))
+                return new DataStringLiteralInteger((BigInteger)fieldAsBigInteger);
+
+            return null;
+        }
+
+        private DataStringLiteralString encodeAsStringLiteral(object value)
+        {
+            return new DataStringLiteralString(value.ToString());
+        }
+
+        private string resolveFunctionName(Type targetType)
+        {
+            bool typeIsMarkedAsFunction = Attribute.IsDefined(targetType, typeof(FunctionAttribute));
+
+            if (typeIsMarkedAsFunction)
+            {
+                FunctionAttribute typeFunctionAttribute = targetType.GetCustomAttribute<FunctionAttribute>();
+
+                return typeFunctionAttribute.FunctionName;
+            }
+            else
+                throw new AttributeExpectedException() { AttributeType = typeof(FunctionAttribute), Member = targetType };
+        }
+
+        private DataStringFunction encodeAsFunction(object target, Type targetType)
+        {
+            if (targetType.IsInstanceOfType(target))
+            {
+                string functionName = resolveFunctionName(target.GetType());
+
+                DataStringItem[] functionParameters = encodeAllFields(target).ToArray();
+                return new DataStringFunction(functionName, functionParameters);
+            }
+
+            return null;
+        }
+        #endregion
+
+        public object Target { get; private set; }
+
+        public DataStringItem Encode()
+        {
+            return encodeRoot(Target);
+        }
+
+        public Encoder(object value)
+        {
+            Target = value;
         }
     }
 }

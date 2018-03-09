@@ -15,15 +15,13 @@ using OpenCAD.OpenCADFormat.Measures.Quantities;
 
 namespace OpenCAD.OpenCADFormat.Drawing
 {
-    [Serializable]
-    [DataStrings.Function("point")]
+    [DataStrings.Function("Point")]
     public struct DrawingPoint : IXmlSerializable
     {
-        public Measures.IUnit<Measures.Quantities.Length> Unit;
-        [DataStrings.FloatLiteral(0)]
-        public float X;
-        [DataStrings.FloatLiteral(1)]
-        public float Y;
+        [DataStrings.StringLiteral()]
+        public Measurement<Length> X;
+        [DataStrings.StringLiteral()]
+        public Measurement<Length> Y;
 
         XmlSchema IXmlSerializable.GetSchema()
         {
@@ -32,93 +30,53 @@ namespace OpenCAD.OpenCADFormat.Drawing
 
         void IXmlSerializable.ReadXml(XmlReader reader)
         {
-            X = float.Parse(reader.GetAttribute("X"), CultureInfo.InvariantCulture);
-            Y = float.Parse(reader.GetAttribute("Y"), CultureInfo.InvariantCulture);
-            Unit = Quantity<Length>.GetUnitBySymbol(reader.GetAttribute("Unit"));
         }
 
         void IXmlSerializable.WriteXml(XmlWriter writer)
         {
-            writer.WriteAttributeString("X", X.ToString(CultureInfo.InvariantCulture));
-            writer.WriteAttributeString("Y", Y.ToString(CultureInfo.InvariantCulture));
-            writer.WriteAttributeString("Unit", Unit.Symbol);
+        }
+    }
+
+    [DataStrings.Function("Size")]
+    public struct DrawingSize : IXmlSerializable
+    {
+        [DataStrings.StringLiteral()]
+        public Measurement<Length> Width;
+        [DataStrings.StringLiteral()]
+        public Measurement<Length> Height;
+
+        XmlSchema IXmlSerializable.GetSchema()
+        {
+            return null;
         }
 
-        public DrawingPoint(float x, float y, Measures.Unit<Measures.Quantities.Length> unit)
+        void IXmlSerializable.ReadXml(XmlReader reader)
         {
-            X = x;
-            Y = y;
-            Unit = unit;
+        }
+
+        void IXmlSerializable.WriteXml(XmlWriter writer)
+        {
+        }
+
+        public DrawingSize(Measurement<Length> width, Measurement<Length> height)
+        {
+            Width = width;
+            Height = height;
         }
     }
 
     /// <summary>
     /// Represents a color value.
     /// </summary>
-    [DataStrings.AnyFunction("rgb", "rgba", "hsl", "hsv", "cmyk")]
+    [DataStrings.AnyFunction("color-rgb", "color-rgba", "color-hsl", "color-hsv", "color-cmyk")]
     abstract class Color
     {
-        static public Color Parse(string text)
+        public static Color Parse(string text)
         {
-            var parser = new DataStrings.DataStringParser(text);
-            var mainContext = parser.Parse();
-
-            var func = mainContext.Parameters[0] as DataStrings.DataStringFunction;
-            if (func == null)
-                throw new InvalidOperationException("Could not parse color string. Invalid color format.");
-
-            switch (func.Name)
-            {
-                case "rgb":
-                    {
-                        var litFloatR = func.Parameters[0] as DataStrings.DataStringLiteralInteger;
-                        var litFloatG = func.Parameters[1] as DataStrings.DataStringLiteralInteger;
-                        var litFloatB = func.Parameters[2] as DataStrings.DataStringLiteralInteger;
-
-                        return new ColorRGB((int)litFloatB.Value, (int)litFloatR.Value, (int)litFloatB.Value);
-                    }
-                case "rgba":
-                    {
-                        var litFloatR = func.Parameters[0] as DataStrings.DataStringLiteralInteger;
-                        var litFloatG = func.Parameters[1] as DataStrings.DataStringLiteralInteger;
-                        var litFloatB = func.Parameters[2] as DataStrings.DataStringLiteralInteger;
-                        var litFloatA = func.Parameters[3] as DataStrings.DataStringLiteralInteger;
-
-                        return new ColorRGBA((int)litFloatR.Value, (int)litFloatG.Value, (int)litFloatB.Value, (int)litFloatA.Value);
-                    }
-                case "hsl":
-                    {
-                        var litFloatH = func.Parameters[0] as DataStrings.DataStringLiteralFloatingPoint;
-                        var litFloatS = func.Parameters[1] as DataStrings.DataStringLiteralFloatingPoint;
-                        var litFloatL = func.Parameters[2] as DataStrings.DataStringLiteralFloatingPoint;
-
-                        return new ColorHSL((float)litFloatH.Value, (float)litFloatS.Value, (float)litFloatL.Value);
-                    }
-                    break;
-                case "hsv":
-                    {
-                        var litFloatH = func.Parameters[0] as DataStrings.DataStringLiteralFloatingPoint;
-                        var litFloatS = func.Parameters[1] as DataStrings.DataStringLiteralFloatingPoint;
-                        var litFloatV = func.Parameters[2] as DataStrings.DataStringLiteralFloatingPoint;
-
-                        return new ColorHSV((float)litFloatH.Value, (float)litFloatS.Value, (float)litFloatV.Value);
-                    }
-                    break;
-                case "cmyk":
-                    {
-                        var litFloatC = func.Parameters[0] as DataStrings.DataStringLiteralFloatingPoint;
-                        var litFloatM = func.Parameters[1] as DataStrings.DataStringLiteralFloatingPoint;
-                        var litFloatY = func.Parameters[2] as DataStrings.DataStringLiteralFloatingPoint;
-                        var litFloatK = func.Parameters[3] as DataStrings.DataStringLiteralFloatingPoint;
-
-                        return new ColorCMYK((float)litFloatC.Value, (float)litFloatM.Value, (float)litFloatY.Value, (float)litFloatY.Value);
-                    }
-                default:
-                    throw new InvalidOperationException("Could not parse color string. The specified color space is invalid.");
-            }
+            return null;
         }
 
-        public abstract string ToString();
+        public abstract override string ToString();
 
         public abstract System.Drawing.Color ToColor();
     }
@@ -126,14 +84,14 @@ namespace OpenCAD.OpenCADFormat.Drawing
     /// <summary>
     /// Represents a RGB color value.
     /// </summary>
-    [DataStrings.Function("rgb")]
+    [DataStrings.Function("ColorRGB")]
     class ColorRGB : Color
     {
-        [DataStrings.FloatLiteral(0)]
+        [DataStrings.IntegerLiteral()]
         public int R;
-        [DataStrings.FloatLiteral(1)]
+        [DataStrings.IntegerLiteral()]
         public int G;
-        [DataStrings.FloatLiteral(2)]
+        [DataStrings.IntegerLiteral()]
         public int B;
 
         public override System.Drawing.Color ToColor()
@@ -143,23 +101,7 @@ namespace OpenCAD.OpenCADFormat.Drawing
 
         public override string ToString()
         {
-            var mainContext = new DataStrings.DataStringMainContext();
-
-            var func = new DataStrings.DataStringFunction("rgb");
-            mainContext.Parameters.Add(func);
-
-            var litFloatR = new DataStrings.DataStringLiteralFloatingPoint((DataConversion.ArbitraryFloat)R);
-            func.Parameters.Add(litFloatR);
-
-            var litFloatG = new DataStrings.DataStringLiteralFloatingPoint((DataConversion.ArbitraryFloat)G);
-            func.Parameters.Add(litFloatG);
-
-            var litFloatB = new DataStrings.DataStringLiteralFloatingPoint((DataConversion.ArbitraryFloat)B);
-            func.Parameters.Add(litFloatB);
-
-            var generator = new DataStrings.DataStringGenerator(mainContext);
-
-            return generator.Generate();
+            return null;
         }
 
         public ColorRGB(int r, int g, int b)
@@ -173,16 +115,16 @@ namespace OpenCAD.OpenCADFormat.Drawing
     /// <summary>
     /// Represents a RGB color value with alpha channel.
     /// </summary>
-    [DataStrings.Function("rgba")]
+    [DataStrings.Function("ColorRGBA")]
     class ColorRGBA : Color
     {
-        [DataStrings.FloatLiteral(0)]
+        [DataStrings.IntegerLiteral()]
         public int R;
-        [DataStrings.FloatLiteral(1)]
+        [DataStrings.IntegerLiteral()]
         public int G;
-        [DataStrings.FloatLiteral(2)]
+        [DataStrings.IntegerLiteral()]
         public int B;
-        [DataStrings.FloatLiteral(3)]
+        [DataStrings.FloatLiteral()]
         public float A;
 
         public override System.Drawing.Color ToColor()
@@ -192,26 +134,7 @@ namespace OpenCAD.OpenCADFormat.Drawing
 
         public override string ToString()
         {
-            var mainContext = new DataStrings.DataStringMainContext();
-
-            var func = new DataStrings.DataStringFunction("rgba");
-            mainContext.Parameters.Add(func);
-
-            var litFloatR = new DataStrings.DataStringLiteralInteger((BigInteger)R);
-            func.Parameters.Add(litFloatR);
-
-            var litFloatG = new DataStrings.DataStringLiteralInteger((BigInteger)G);
-            func.Parameters.Add(litFloatG);
-
-            var litFloatB = new DataStrings.DataStringLiteralInteger((BigInteger)B);
-            func.Parameters.Add(litFloatB);
-
-            var litFloatA = new DataStrings.DataStringLiteralFloatingPoint((DataConversion.ArbitraryFloat)A);
-            func.Parameters.Add(litFloatA);
-
-            var generator = new DataStrings.DataStringGenerator(mainContext);
-
-            return generator.Generate();
+            return null;
         }
 
         public ColorRGBA(int r, int g, int b, float a)
@@ -226,15 +149,15 @@ namespace OpenCAD.OpenCADFormat.Drawing
     /// <summary>
     /// Represents an HSL color value.
     /// </summary>
-    [DataStrings.Function("hsl")]
+    [DataStrings.Function("ColorHSL")]
     class ColorHSL : Color
     {
-        [DataStrings.FloatLiteral(0)]
-        static float H;
-        [DataStrings.FloatLiteral(1)]
-        static float S;
-        [DataStrings.FloatLiteral(2)]
-        static float L;
+        [DataStrings.FloatLiteral()]
+        public float H;
+        [DataStrings.FloatLiteral()]
+        public float S;
+        [DataStrings.FloatLiteral()]
+        public float L;
 
         public override System.Drawing.Color ToColor()
         {
@@ -259,23 +182,7 @@ namespace OpenCAD.OpenCADFormat.Drawing
 
         public override string ToString()
         {
-            var mainContext = new DataStrings.DataStringMainContext();
-
-            var func = new DataStrings.DataStringFunction("hsl");
-            mainContext.Parameters.Add(func);
-
-            var litFloatH = new DataStrings.DataStringLiteralFloatingPoint((DataConversion.ArbitraryFloat)H);
-            func.Parameters.Add(litFloatH);
-
-            var litFloatS = new DataStrings.DataStringLiteralFloatingPoint((DataConversion.ArbitraryFloat)S);
-            func.Parameters.Add(litFloatS);
-
-            var litFloatL = new DataStrings.DataStringLiteralFloatingPoint((DataConversion.ArbitraryFloat)L);
-            func.Parameters.Add(litFloatL);
-
-            var generator = new DataStrings.DataStringGenerator(mainContext);
-
-            return generator.Generate();
+            return null;
         }
 
         public ColorHSL(float h, float s, float l)
@@ -289,15 +196,15 @@ namespace OpenCAD.OpenCADFormat.Drawing
     /// <summary>
     /// Represents an HSV color value.
     /// </summary>
-    [DataStrings.Function("hsv")]
+    [DataStrings.Function("ColorHSV")]
     class ColorHSV : Color
     {
-        [DataStrings.FloatLiteral(0)]
-        static float H;
-        [DataStrings.FloatLiteral(1)]
-        static float S;
-        [DataStrings.FloatLiteral(2)]
-        static float V;
+        [DataStrings.FloatLiteral()]
+        public float H;
+        [DataStrings.FloatLiteral()]
+        public float S;
+        [DataStrings.FloatLiteral()]
+        public float V;
 
         public override System.Drawing.Color ToColor()
         {
@@ -322,23 +229,7 @@ namespace OpenCAD.OpenCADFormat.Drawing
 
         public override string ToString()
         {
-            var mainContext = new DataStrings.DataStringMainContext();
-
-            var func = new DataStrings.DataStringFunction("hsv");
-            mainContext.Parameters.Add(func);
-
-            var litFloatH = new DataStrings.DataStringLiteralFloatingPoint((DataConversion.ArbitraryFloat)H);
-            func.Parameters.Add(litFloatH);
-
-            var litFloatS = new DataStrings.DataStringLiteralFloatingPoint((DataConversion.ArbitraryFloat)S);
-            func.Parameters.Add(litFloatS);
-
-            var litFloatV = new DataStrings.DataStringLiteralFloatingPoint((DataConversion.ArbitraryFloat)V);
-            func.Parameters.Add(litFloatV);
-
-            var generator = new DataStrings.DataStringGenerator(mainContext);
-
-            return generator.Generate();
+            return null;
         }
 
         public ColorHSV(float h, float s, float v)
@@ -352,16 +243,16 @@ namespace OpenCAD.OpenCADFormat.Drawing
     /// <summary>
     /// Represents a CMYK color value;
     /// </summary>
-    [DataStrings.Function("cmyk")]
+    [DataStrings.Function("ColorCMYK")]
     class ColorCMYK : Color
     {
-        [DataStrings.FloatLiteral(0)]
+        [DataStrings.FloatLiteral()]
         public float C;
-        [DataStrings.FloatLiteral(1)]
+        [DataStrings.FloatLiteral()]
         public float M;
-        [DataStrings.FloatLiteral(2)]
+        [DataStrings.FloatLiteral()]
         public float Y;
-        [DataStrings.FloatLiteral(3)]
+        [DataStrings.FloatLiteral()]
         public float K;
 
         public override System.Drawing.Color ToColor()
@@ -375,26 +266,7 @@ namespace OpenCAD.OpenCADFormat.Drawing
 
         public override string ToString()
         {
-            var mainContext = new DataStrings.DataStringMainContext();
-
-            var func = new DataStrings.DataStringFunction("cmyk");
-            mainContext.Parameters.Add(func);
-
-            var litFloatC = new DataStrings.DataStringLiteralFloatingPoint((DataConversion.ArbitraryFloat)C);
-            func.Parameters.Add(litFloatC);
-
-            var litFloatM = new DataStrings.DataStringLiteralFloatingPoint((DataConversion.ArbitraryFloat)M);
-            func.Parameters.Add(litFloatM);
-
-            var litFloatY = new DataStrings.DataStringLiteralFloatingPoint((DataConversion.ArbitraryFloat)Y);
-            func.Parameters.Add(litFloatY);
-
-            var litFloatK = new DataStrings.DataStringLiteralFloatingPoint((DataConversion.ArbitraryFloat)K);
-            func.Parameters.Add(litFloatK);
-
-            var generator = new DataStrings.DataStringGenerator(mainContext);
-
-            return generator.Generate();
+            return null;
         }
 
         public ColorCMYK(float c, float m, float y, float k)
@@ -406,9 +278,12 @@ namespace OpenCAD.OpenCADFormat.Drawing
         }
     }
 
+    [Serializable]
     enum FillRule
     {
+        [XmlEnum("EvenOdd")]
         EvenOdd,
+        [XmlEnum("NonZero")]
         NonZero
     }
 
@@ -418,24 +293,61 @@ namespace OpenCAD.OpenCADFormat.Drawing
     }
 
     [Serializable]
+    [DataStrings.Function("DashArray")]
+    struct StrokeDashArray: IXmlSerializable
+    {
+        [DataStrings.FloatLiteral()]
+        public int[] Dashes { get; private set; }
+
+        public StrokeDashArray(int[] dashes)
+        {
+            Dashes = dashes;
+        }
+
+        XmlSchema IXmlSerializable.GetSchema()
+        {
+            return null;
+        }
+
+        void IXmlSerializable.ReadXml(XmlReader reader)
+        {
+        }
+
+        void IXmlSerializable.WriteXml(XmlWriter writer)
+        {
+        }
+    }
+
+    [Serializable]
     public class VisualElement
     {
+        [XmlAttribute("FontColor")]
         Color Color;
+        [XmlAttribute("Fill")]
         Color Fill;
+        [XmlAttribute("FillRule")]
         FillRule FillRule;
+        [XmlAttribute("Font")]
         string Font;
+        [XmlAttribute("FontFamily")]
         string FontFamily;
-        Measures.Measurement<Measures.Quantities.Length> FontSize;
+        [XmlAttribute("FontHeight")]
+        Measurement<Length> FontHeight;
+        [XmlAttribute("FontStyle")]
         FontStyle FontStyle;
         //FontVariant FontVariant;
         //FontWheight FontWeight;
+        [XmlAttribute("xlink:id", Form = XmlSchemaForm.Qualified)]
         string ID;
+        [XmlAttribute("Stroke")]
         Color Stroke;
         //StrokeDashArray StrokeDasharray;
-        Measures.Measurement<Measures.Quantities.Length> StrokeDashOffset;
+        [XmlAttribute("StrokeDashOffset")]
+        Measurement<Length> StrokeDashOffset;
         //StrokeLineCap StrokeLineCap;
         //StrokeLineJoin StrokeLineJoin;
-        Measures.Measurement<Measures.Quantities.Length> StrokeWidth;
+        [XmlAttribute("StrokeWidth")]
+        Measurement<Length> StrokeWidth;
         //Transform Transform;
     }
 
@@ -446,48 +358,64 @@ namespace OpenCAD.OpenCADFormat.Drawing
     }
 
     [Serializable]
+    public class Rectangle : Shape
+    {
+        [XmlAttribute("TopLeft")]
+        public DrawingPoint TopLeft;
+        [XmlAttribute("BottomRight")]
+        public DrawingPoint BottomRight;
+    }
+
+    [Serializable]
     public class Circle : Shape
     {
-
+        [XmlAttribute("Center", typeof(DrawingPoint))]
+        public DrawingPoint Center;
+        [XmlAttribute("Radius")]
+        public IMeasurement<Length> Radius;
     }
 
     [Serializable]
     public class Ellipse : Shape
     {
-
+        [XmlAttribute("Center", typeof(DrawingPoint))]
+        public DrawingPoint Center;
+        [XmlAttribute("Radius", typeof(DrawingSize))]
+        public DrawingPoint Radius;
     }
 
     [Serializable]
-    public class Line : Shape, IXmlSerializable
+    public class Line : Shape
     {
-        public float X1 = 0;
-        public float Y1 = 0;
-        public float X2 = 0;
-        public float Y2 = 0;
-        public Measures.IUnit<Measures.Quantities.Length> Unit;
+        [XmlAttribute("Start", typeof(DrawingPoint))]
+        public DrawingPoint Start;
+        [XmlAttribute("End", typeof(DrawingPoint))]
+        public DrawingPoint End;
+    }
 
-        XmlSchema IXmlSerializable.GetSchema()
-        {
-            return null;
-        }
+    [Serializable]
+    public class Polygon : Shape
+    {
+        [XmlElement(typeof(DrawingPoint))]
+        public List<DrawingPoint> Points;
+    }
 
-        void IXmlSerializable.ReadXml(XmlReader reader)
-        {
-            X1 = float.Parse(reader.GetAttribute("X1"), CultureInfo.InvariantCulture);
-            Y1 = float.Parse(reader.GetAttribute("Y1"), CultureInfo.InvariantCulture);
-            X2 = float.Parse(reader.GetAttribute("X2"), CultureInfo.InvariantCulture);
-            Y2 = float.Parse(reader.GetAttribute("Y2"), CultureInfo.InvariantCulture);
-            Unit = Quantity<Length>.GetUnitBySymbol(reader.GetAttribute("Unit"));
-        }
+    [Serializable]
+    public class Polyline : Polygon
+    {
+    }
 
-        void IXmlSerializable.WriteXml(XmlWriter writer)
-        {
-            writer.WriteAttributeString("X1", X1.ToString(CultureInfo.InvariantCulture));
-            writer.WriteAttributeString("Y1", Y1.ToString(CultureInfo.InvariantCulture));
-            writer.WriteAttributeString("X2", X2.ToString(CultureInfo.InvariantCulture));
-            writer.WriteAttributeString("Y2", Y2.ToString(CultureInfo.InvariantCulture));
-            writer.WriteAttributeString("Unit", Unit.Symbol);
-        }
+    [Serializable]
+    public class ArcThreePoint : Shape
+    {
+        [XmlAttribute("Start", typeof(Point))]
+        public DrawingPoint Start;
+        [XmlAttribute("Control", typeof(Point))]
+        public DrawingPoint Control;
+        [XmlAttribute("End", typeof(Point))]
+        public DrawingPoint End;
+        [XmlAttribute("LargeArcFlag")]
+        public bool LargeArcFlag;
     }
 
     [Serializable]
@@ -501,168 +429,67 @@ namespace OpenCAD.OpenCADFormat.Drawing
 
             foreach (var segment in Segments)
             {
-                if (segment is Arc)
-                {
-                    Arc arc = segment as Arc;
-                    path.AddArc((float)(arc.X - arc.RadiusX), (float)(arc.Y - arc.RadiusY), (float)(arc.RadiusX * 2),
-                        (float)(arc.RadiusY * 2), (float)(arc.Angle), (float)(arc.Sweep));
-                }
             }
 
             return path;
         }
 
-        [Serializable]
-        public class PathSegment : IXmlSerializable
+
+        public class PathSegment
         {
-            public float X;
-            public float Y;
-            public bool Relative;
-            public Measures.IUnit<Measures.Quantities.Length> Unit;
 
-            XmlSchema IXmlSerializable.GetSchema()
-            {
-                return null;
-            }
+            public IMeasurement<Length> X;
 
-            public virtual void ReadXml(XmlReader reader)
-            {
-                X = float.Parse(reader.GetAttribute("X"), CultureInfo.InvariantCulture);
-                Y = float.Parse(reader.GetAttribute("Y"), CultureInfo.InvariantCulture);
-                Relative = bool.Parse(reader.GetAttribute("Relative"));
-                Unit = Quantity<Length>.GetUnitBySymbol(reader.GetAttribute("Unit"));
-            }
+            public IMeasurement<Length> Y;
 
-            public virtual void WriteXml(XmlWriter writer)
-            {
-                writer.WriteAttributeString("X", X.ToString(CultureInfo.InvariantCulture));
-                writer.WriteAttributeString("Y", Y.ToString(CultureInfo.InvariantCulture));
-                writer.WriteAttributeString("Relative", Relative.ToString());
-                writer.WriteAttributeString("Unit", Unit.Symbol);
-            }
 
-            public PathSegment() { }
-            public PathSegment(float x, float y, bool relative, Measures.IUnit<Measures.Quantities.Length> unit)
-            {
-                X = x;
-                Y = y;
-                Relative = relative;
-                Unit = unit;
-            }
+            public bool Relative = true;
         }
 
-        [Serializable]
+
         public class Arc : PathSegment
         {
-            public Measures.IUnit<Measures.Quantities.PlaneAngle> AngleUnit;
-            public float Angle;
-            public float Sweep;
-            public float RadiusX;
-            public float RadiusY;
-
-            public override void ReadXml(XmlReader reader)
+            Arc()
             {
-                AngleUnit = Measures.Quantities.PlaneAngle.SupportedUnits.FindBySymbol(reader.GetAttribute("AngleUnit"));
-                Angle = float.Parse(reader.GetAttribute("A"), CultureInfo.InvariantCulture);
-                Sweep = float.Parse(reader.GetAttribute("S"), CultureInfo.InvariantCulture);
-                RadiusX = float.Parse(reader.GetAttribute("RX"), CultureInfo.InvariantCulture);
-                RadiusY = float.Parse(reader.GetAttribute("RY"), CultureInfo.InvariantCulture);
-
-                base.ReadXml(reader);
-            }
-
-            public override void WriteXml(XmlWriter writer)
-            {
-                writer.WriteAttributeString("AngleUnit", AngleUnit.Symbol);
-                writer.WriteAttributeString("A", Angle.ToString(CultureInfo.InvariantCulture));
-                writer.WriteAttributeString("S", Sweep.ToString(CultureInfo.InvariantCulture));
-                writer.WriteAttributeString("RX", RadiusX.ToString(CultureInfo.InvariantCulture));
-                writer.WriteAttributeString("RY", RadiusY.ToString(CultureInfo.InvariantCulture));
-
-                base.WriteXml(writer);
+                new System.Windows.Media.ArcSegment();
             }
         }
 
-        [Serializable]
-        public class Curve : PathSegment
-        {
-            public float X2;
-            public float Y2;
 
-            public override void ReadXml(XmlReader reader)
-            {
-                X2 = float.Parse(reader.GetAttribute("X2"), CultureInfo.InvariantCulture);
-                Y2 = float.Parse(reader.GetAttribute("Y2"), CultureInfo.InvariantCulture);
-
-                base.ReadXml(reader);
-            }
-
-            public override void WriteXml(XmlWriter writer)
-            {
-                writer.WriteAttributeString("X2", X2.ToString(CultureInfo.InvariantCulture));
-                writer.WriteAttributeString("Y2", Y2.ToString(CultureInfo.InvariantCulture));
-
-                base.WriteXml(writer);
-            }
-        }
-
-        [Serializable]
-        public class LineTo : PathSegment
+        public class ClosePath : PathSegment
         {
         }
 
-        [Serializable]
-        public class MoveTo : PathSegment
+
+        public class CurveCubic : PathSegment
         {
+
+            public IMeasurement<Length> X2;
+
+            public IMeasurement<Length> Y2;
         }
 
         [Serializable]
-        public class QuadraticCurve : PathSegment
+
+        public class CurveQuadratic : PathSegment
         {
-            public float X2;
-            public float Y2;
-            public float X3;
-            public float Y3;
 
-            public override void ReadXml(XmlReader reader)
-            {
-                X2 = float.Parse(reader.GetAttribute("X2"), CultureInfo.InvariantCulture);
-                Y2 = float.Parse(reader.GetAttribute("Y2"), CultureInfo.InvariantCulture);
-                X3 = float.Parse(reader.GetAttribute("X3"), CultureInfo.InvariantCulture);
-                Y3 = float.Parse(reader.GetAttribute("Y3"), CultureInfo.InvariantCulture);
+            public IMeasurement<Length> X2;
 
-                base.ReadXml(reader);
-            }
+            public IMeasurement<Length> Y2;
 
-            public override void WriteXml(XmlWriter writer)
-            {
-                writer.WriteAttributeString("X2", X2.ToString(CultureInfo.InvariantCulture));
-                writer.WriteAttributeString("Y2", Y2.ToString(CultureInfo.InvariantCulture));
-                writer.WriteAttributeString("X3", X3.ToString(CultureInfo.InvariantCulture));
-                writer.WriteAttributeString("Y3", Y3.ToString(CultureInfo.InvariantCulture));
+            public IMeasurement<Length> X3;
 
-                base.WriteXml(writer);
-            }
+            public IMeasurement<Length> Y3;
         }
-    }
 
-    [Serializable]
-    public class Polygon : Shape
-    {
-        [XmlIgnore]
-        List<DrawingPoint> Points;
-    }
+        [Serializable]
 
-    [Serializable]
-    public class Polyline : Polygon
-    {
+        public class LineTo : PathSegment { }
 
-    }
+        [Serializable]
 
-    [Serializable]
-    public class Rectangle : Shape
-    {
-
+        public class MoveTo : PathSegment { }
     }
 
     [Serializable]

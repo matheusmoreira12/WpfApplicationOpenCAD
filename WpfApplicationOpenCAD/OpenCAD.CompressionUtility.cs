@@ -5,7 +5,7 @@ namespace OpenCAD
 {
     static class CompressionUtility
     {
-        static public MemoryStream CompressStream(Stream input, CompressionMode mode)
+        public static MemoryStream CompressStream(Stream input, CompressionMode mode)
         {
             using (MemoryStream outstream = new MemoryStream())
             using (DeflateStream compstream = new DeflateStream(outstream, mode))
@@ -17,7 +17,7 @@ namespace OpenCAD
             }
         }
 
-        static public byte[] CompressBuffer(byte[] input, CompressionMode mode)
+        public static byte[] CompressBuffer(byte[] input, CompressionMode mode)
         {
             using (MemoryStream instream = new MemoryStream(input))
             using (MemoryStream outstream = CompressStream(instream, CompressionMode.Compress))

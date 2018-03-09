@@ -3,82 +3,133 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace OpenCAD
+namespace OpenCAD.OpenCADFormat.DataConversion
 {
-    namespace OpenCADFormat
+    using Utils;
+
+    public static class ObjectConversion
     {
-        namespace DataConversion
+        public static bool TryConvertTo<T>(object value, out T result) where T : class
         {
-            public struct ArbitraryFloat
+            try
             {
-                static public explicit operator double(ArbitraryFloat me)
-                {   
-                    return 0;
-                }
+                result = (T)(dynamic)value;
+                return true;
+            }
+            catch { }
 
-                static public explicit operator float(ArbitraryFloat me)
-                {
-                    return 0;
-                }
+            result = null;
+            return false;
+        }
 
-                static public explicit operator ArbitraryFloat(double value)
-                {
-                    return new ArbitraryFloat();
-                }
+        public static bool TryConvertTo<T>(object value, out T? result) where T : struct
+        {
+            try
+            {
+                result = (T)(dynamic)value;
+                return true;
+            }
+            catch { }
 
-                static public explicit operator ArbitraryFloat(float value)
-                {
-                    return new ArbitraryFloat();
-                }
+            result = null;
+            return false;
+        }
+    }
 
-                static public ArbitraryFloat Parse(string s)
-                {
-                    return new ArbitraryFloat();
-                }
+    public static class BinaryConversion
+    {
+        public const ushort BIT_MASK = 0x1;
 
-                private BigInteger mantissa;
-                private int exponent;
+        public static void SetRange(this BitArray bitArray, ushort value, int startIndex, int count)
+        {
+            for (int i = 0; i < count; i++)
+                bitArray.Set(i + startIndex, Convert.ToBoolean((value >> i) & BIT_MASK));
+        }
 
-                private ArbitraryFloat(BigInteger mantissa, int exponent)
-                {
-                    this.mantissa = mantissa;
-                    this.exponent = exponent;
-                }
+        public static ushort GetRange(this BitArray bitArray, int startIndex, int count)
+        {
+            ushort result = 0;
+
+            for (int i = 0; i < count; i++)
+            {
+                ushort bitValue = (ushort)(Convert.ToUInt16(bitArray.Get(i + startIndex)) & BIT_MASK);
+                result = (ushort)(result | bitValue << i);
             }
 
-            public static class BinaryConversion
-            {
-                static public byte[] AsByteArray(this BitArray bits)
+            return result;
+        }
+
+        public static byte[] AsByteArray(this BitArray bits)
+        {
+            byte[] result = new byte[(bits.Length + 7) / 8];
+
+            bits.CopyTo(result, 0);
+
+            return result;
+        }
+
+        public static string ToRepresentation(BitArray value, int fromBase)
+        {
+            int bitsPerChar;
+
+            if (fromBase == 2)
+                bitsPerChar = 1;
+            else if (fromBase == 8)
+                bitsPerChar = 3;
+            else if (fromBase == 16)
+                bitsPerChar = 4;
+            else
+                throw new InvalidOperationException(@"Cannot convert to representation. Base needs to be 2 - binary, 
+8 - octal or 16 - hexadecimal.");
+
+            string result = "";
+
+            for (int i = 0; i < value.Length / bitsPerChar; i++)
+                result += Convert.ToString(value.GetRange(i * bitsPerChar, bitsPerChar), fromBase);
+
+            return result;
+        }
+
+        public static BitArray FromRepresentation(string rep, int fromBase)
+        {
+            int bitsPerChar;
+
+            if (fromBase == 2)
+                bitsPerChar = 1;
+            else if (fromBase == 8)
+                bitsPerChar = 3;
+            else if (fromBase == 16)
+                bitsPerChar = 4;
+            else
+                throw new InvalidOperationException(@"Cannot convert from representation. Base needs to be 2 - binary, 
+8 - octal or 16 - hexadecimal.");
+
+            BitArray result = new BitArray(rep.Length * bitsPerChar);
+
+            for (int i = 0; i < rep.Length; i++)
+                result.SetRange(Convert.ToUInt16(rep.Substring(i, 1), fromBase), i * bitsPerChar, bitsPerChar);
+
+            return result;
+        }
+
+        private static BitArray fromBinaryRepresentation(string rep)
+        {
+            BitArray result = new BitArray(rep.Length);
+
+            for (int i = 0; i < rep.Length; i++)
+                switch (rep[i])
                 {
-                    byte[] result = new byte[(bits.Length + 7) / 8];
-
-                    bits.CopyTo(result, 0);
-
-                    return result;
+                    case '0':
+                        result.Set(i, false);
+                        break;
+                    case '1':
+                        result.Set(i, true);
+                        break;
+                    default:
+                        throw new InvalidOperationException("Invalid binary digit found during conversion.");
                 }
 
-                static public BitArray FromString(string s)
-                {
-                    BitArray result = new BitArray(s.Length);
-
-                    for (int i = 0; i < s.Length; i++)
-                    {
-                        switch (s[i])
-                        {
-                            case '0':
-                                result.Set(i, false);
-                                break;
-                            case '1':
-                                result.Set(i, true);
-                                break;
-                            default:
-                                throw new InvalidOperationException("Invalid binary digit found during conversion.");
-                        }
-                    }
-
-                    return result;
-                }
-            }
+            return result;
         }
     }
 }

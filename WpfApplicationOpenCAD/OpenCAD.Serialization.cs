@@ -24,7 +24,7 @@ namespace OpenCAD
         [Serializable]
         public class DateTimeUTCWrapper
         {
-            static public implicit operator DateTime(DateTimeUTCWrapper datetime)
+            public static implicit operator DateTime(DateTimeUTCWrapper datetime)
             {
                 return datetime.Value;
             }
@@ -77,7 +77,7 @@ namespace OpenCAD
         [Serializable]
         public class VersionWrapper
         {
-            static public implicit operator Version(VersionWrapper version)
+            public static implicit operator Version(VersionWrapper version)
             {
                 return version.Value;
             }
@@ -186,7 +186,7 @@ namespace OpenCAD
         [Serializable]
         public class Metadata
         {
-            static public implicit operator string(Metadata metadata)
+            public static implicit operator string(Metadata metadata)
             {
                 return metadata.Content;
             }
@@ -220,7 +220,7 @@ namespace OpenCAD
         [Serializable]
         public class ImplicitMetadata
         {
-            static public implicit operator string(ImplicitMetadata metadata)
+            public static implicit operator string(ImplicitMetadata metadata)
             {
                 return metadata.Content;
             }
@@ -246,7 +246,7 @@ namespace OpenCAD
         [Serializable]
         public class CDATAWrapper
         {
-            static public implicit operator string(CDATAWrapper cdata)
+            public static implicit operator string(CDATAWrapper cdata)
             {
                 return cdata.TextContent;
             }
@@ -293,12 +293,12 @@ namespace OpenCAD
         [Serializable]
         public class Base64Wrapper
         {
-            static public implicit operator string(Base64Wrapper base64)
+            public static implicit operator string(Base64Wrapper base64)
             {
                 return base64.Base64Content;
             }
 
-            static public implicit operator byte[] (Base64Wrapper base64)
+            public static implicit operator byte[] (Base64Wrapper base64)
             {
                 return base64.RawContent;
             }
@@ -341,7 +341,7 @@ namespace OpenCAD
             /// </summary>
             /// <param name="extension">The file extension.</param>
             /// <returns>A string containing the file mime type.</returns>
-            static public string GetMimeType(string extension)
+            public static string GetMimeType(string extension)
             {
                 return MimeTypeMap.List.MimeTypeMap.GetMimeType(extension).FirstOrDefault();
             }
@@ -351,7 +351,7 @@ namespace OpenCAD
             /// </summary>
             /// <param name="mimeType">The file mime type.</param>
             /// <returns>A string containing the file extension.</returns>
-            static public string GetExtension(string mimeType)
+            public static string GetExtension(string mimeType)
             {
                 return MimeTypeMap.List.MimeTypeMap.GetExtension(mimeType).FirstOrDefault();
             }
@@ -362,7 +362,7 @@ namespace OpenCAD
             /// <param name="uriString">The resource location URI string.</param>
             /// <param name="compress">Indicates that the content shold get compressed.</param>
             /// <returns>The new embedded content tag.</returns>
-            static public EmbeddedContent CreateFromWebResource(string uriString, bool compress = false)
+            public static EmbeddedContent CreateFromWebResource(string uriString, bool compress = false)
             {
                 EmbeddedContent result = new EmbeddedContent();
                 result.ReadFromWebResource(uriString);
@@ -377,7 +377,7 @@ namespace OpenCAD
             /// <param name="path">The file to be read from.</param>
             /// <param name="compress">Indicates that the content shold get compressed.</param>
             /// <returns>The new embedded content tag.</returns>
-            static public EmbeddedContent CreateFromFile(string path, bool compress = false)
+            public static EmbeddedContent CreateFromFile(string path, bool compress = false)
             {
                 EmbeddedContent result = new EmbeddedContent();
                 result.ReadFromFile(path);
@@ -845,7 +845,7 @@ namespace OpenCAD
         [Serializable]
         public struct Placement
         {
-            static public Placement Parse(string value)
+            public static Placement Parse(string value)
             {
                 string[] values = value.Split(';');
                 if (values.Length != 2)

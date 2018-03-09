@@ -13,7 +13,7 @@ namespace OpenCAD.DrawingSerialization
 {
     public class AttributeCollection : List<KeyValuePair<string, string>>
     {
-        static public AttributeCollection Parse(string input)
+        public static AttributeCollection Parse(string input)
         {
             var result = new AttributeCollection { };
 

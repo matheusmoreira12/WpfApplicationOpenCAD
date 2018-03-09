@@ -11,7 +11,7 @@ namespace OpenCAD.Drawing
 
     static class AdvancedMethods
     {
-        static public void SetPixelSmooth(this System.Drawing.Bitmap bitmap, System.Drawing.PointF where, System.Drawing.Color color)
+        public static void SetPixelSmooth(this System.Drawing.Bitmap bitmap, System.Drawing.PointF where, System.Drawing.Color color)
         {
             int nearestX = (int)Math.Round(where.X),
                 nearestY = (int)Math.Round(where.Y);
@@ -21,7 +21,7 @@ namespace OpenCAD.Drawing
             bitmap.SetPixel(nearestX, nearestY, color.CombineColors(bitmap.GetPixel(nearestX, nearestY), 1 - value));
         }
 
-        static public System.Drawing.Color CombineColors(this System.Drawing.Color color1, System.Drawing.Color color2, float amount)
+        public static System.Drawing.Color CombineColors(this System.Drawing.Color color1, System.Drawing.Color color2, float amount)
         {
             float colorA = color1.A * (1 - amount) + color2.A * amount,
                 colorR = color1.R * (1 - amount) + color2.R * amount,
@@ -31,7 +31,7 @@ namespace OpenCAD.Drawing
             return System.Drawing.Color.FromArgb((int)colorA, (int)colorR, (int)colorG, (int)colorB);
         }
 
-        static public System.Drawing.Color InterpolateColors(System.Drawing.Color color1, float position1, System.Drawing.Color color2,
+        public static System.Drawing.Color InterpolateColors(System.Drawing.Color color1, float position1, System.Drawing.Color color2,
             float position2, float value)
         {
             if (position1 > position2)
@@ -124,7 +124,7 @@ namespace OpenCAD.Drawing
     /// </summary>
     class ConicGradientBrush
     {
-        static public implicit operator System.Drawing.Brush(ConicGradientBrush gradient)
+        public static implicit operator System.Drawing.Brush(ConicGradientBrush gradient)
         {
             return gradient.brush;
         }
